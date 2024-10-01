@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2024년도 전세계 휴.국경일 달력</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 36px;
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .control-panel select, .control-panel input {
+            padding: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .calendar-year {
+            font-size: 48px;
+            margin: 20px 0;
+            color: red;
+        }
+
+        .calendar-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+           max-width: 1000px; /* 달력 컨테이너의 최대 너비 */
+           margin: 0 0 0 250px; /* 왼쪽으로 20px 이동 */
+           padding-bottom: 20px;
+        }
+     .memo {
+            margin-top: 0;
+            text-align: left;
+            max-width: 500px;
+            margin: 0 0 0 250px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .month {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .month h3 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+
+        .holidays {
+            background-color: rgba(255, 0, 0, 0.3); /* 빨간색 투명 배경 */
+            color: white; /* 숫자는 하얀색으로 표시 */
+        }
+
+        .holidays:hover {
+            background-color: rgba(255, 0, 0, 0.5); /* 마우스를 올렸을 때 음영을 더 진하게 */
+        }
+
+        .header-row {
+            background-color: #f2f2f2;
+        }
+
+   
+    </style>
+</head>
+<body>
+
+    <h1>전세계 휴.국경일 달력</h1>
+
+    <div class="control-panel">
+        <div>
+            <label for="country">국가 선택</label>
+            <select id="country" onchange="updateCalendar()">
+                <option value="KR">한국</option>
+                <option value="US">미국</option>
+                <option value="JP">일본</option>
+                <option value="FR">프랑스</option>
+                <option value="DE">독일</option>
+                <!-- OECD 국가 추가 -->
+            </select>
+        </div>
+
+        <div>
+            <label for="year">년도 선택</label>
+            <input type="number" id="year" value="2024" min="1900" max="2100" onchange="updateCalendar()">
+        </div>
+    </div>
+
+    <div class="calendar-year" id="selected-year">2024</div>
+
+    <div class="calendar-container" id="calendar-container">
+        <!-- 월별 달력은 JavaScript로 자동 생성 -->
+    </div>
+
+    <div class="memo" id="holiday-memo">
+        <strong>국경일 목록:</strong><br>
+        <!-- 국경일 메모는 JavaScript로 자동 생성 -->
+    </div>
+
+    <script>
+        const monthNames = ["January", "February", "March", "April", "May", "June", 
+                            "July", "August", "September", "October", "November", "December"];
+
+        const holidaysData = {
+            'KR': {
+                '2024': {
+                    '1': {1: '신정', 22: '설날'},
+                    '3': {1: '삼일절'},
+                    '5': {5: '어린이날'},
+                    '8': {15: '광복절'},
+                    '10': {3: '개천절', 9: '한글날'}
+                }
+            },
+            'US': {
+                '2024': {
+                    '7': {4: '독립기념일'},
+                    '11': {28: '추수감사절'}
+                }
+            }
+        };
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function getStartDayOfMonth(year, month) {
+            return new Date(year, month, 1).getDay();
+        }
+
+        function createCalendar() {
+            const calendarContainer = document.getElementById('calendar-container');
+            calendarContainer.innerHTML = ''; // 기존 달력 지우기
+
+            const country = document.getElementById("country").value;
+            const year = document.getElementById("year").value;
+            const holidays = holidaysData[country] && holidaysData[country][year] ? holidaysData[country][year] : {};
+
+            for (let i = 0; i < 12; i++) {
+                const monthDiv = document.createElement('div');
+                monthDiv.className = 'month';
+
+                const monthName = document.createElement('h3');
+                monthName.innerText = monthNames[i];
+                monthDiv.appendChild(monthName);
+
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                headerRow.className = 'header-row';
+                ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                    const th = document.createElement('th');
+                    th.innerText = day;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+
+                const daysInMonth = getDaysInMonth(year, i);
+                const startDay = getStartDayOfMonth(year, i);
+
+                let dayCount = 1;
+                for (let j = 0; j < 6; j++) {
+                    const row = document.createElement('tr');
+                    for (let k = 0; k < 7; k++) {
+                        const cell = document.createElement('td');
+                        if (j === 0 && k < startDay) {
+                            cell.innerText = '';
+                        } else if (dayCount <= daysInMonth) {
+                            cell.innerText = dayCount;
+
+                            if (holidays[i+1] && holidays[i+1][dayCount]) {
+                                cell.classList.add('holidays');
+                            }
+
+                            dayCount++;
+                        } else {
+                            cell.innerText = '';
+                        }
+                        row.appendChild(cell);
+                    }
+                    tbody.appendChild(row);
+                }
+                table.appendChild(tbody);
+
+                monthDiv.appendChild(table);
+                calendarContainer.appendChild(monthDiv);
+            }
+        }
+
+        function updateHolidayMemo() {
+            const memoDiv = document.getElementById('holiday-memo');
+            const country = document.getElementById("country").value;
+            const year = document.getElementById("year").value;
+            const holidays = holidaysData[country] && holidaysData[country][year] ? holidaysData[country][year] : {};
+
+            memoDiv.innerHTML = '<strong>국경일 목록:</strong><br>';
+            for (const [month, days] of Object.entries(holidays)) {
+                for (const [day, name] of Object.entries(days)) {
+                    memoDiv.innerHTML += `${month}월 ${day}일: ${name} <br>`;
+                }
+            }
+        }
+
+        function updateCalendar() {
+            const year = document.getElementById("year").value;
+            document.getElementById("selected-year").innerText = year;
+
+            createCalendar();
+            updateHolidayMemo();
+        }
+
+        window.onload = function() {
+            createCalendar();
+            updateHolidayMemo();
+        };
+    </script>
+</body>
+</html>
